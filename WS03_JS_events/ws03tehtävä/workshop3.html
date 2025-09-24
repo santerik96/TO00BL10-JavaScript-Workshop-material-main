@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Workshop 3: JavaScript Events</title>
+<style>
+  body.ws3 { font-family: Arial, sans-serif; margin: 20px; }
+  #coordinates {
+    width: 300px;
+    height: 150px;
+    border: 2px dashed #555;
+    margin-top: 10px;
+    padding: 10px;
+    background-color: #f9f9f9;
+  }
+  textarea {
+    width: 300px;
+    height: 100px;
+    display: block;
+    margin-bottom: 8px;
+  }
+</style>
+</head>
+
+<body class="ws3">
+    <h1>Workshop 3: JavaScript Events</h1>
+    <hr />
+    <p>Practice JavaScript events.</p>
+    <hr/>
+    
+    <h2>Exercise 1</h2>
+    <p>
+      <button onclick="clickMe()">Click me</button>
+      <button onclick="showTable()">Show table</button>
+      <button onclick="getLocation()">Geolocation</button>
+    </p>
+
+    <div id="tableContainer"></div>
+    <div id="geoOutput"></div>
+    
+
+    <hr/>
+    <h2 id="ex2Heading">Exercise 2</h2>
+    <p>Move your mouse over and out of this heading to trigger events.</p>
+
+    <hr/>
+    <h2>Exercise 3</h2>
+    <form onsubmit="return checkForm()">
+        <textarea id="textdata"
+          onfocus="focusText()"
+          onkeydown="countKeys()"></textarea>
+        <span id="charcount"></span><br>
+        <button type="submit">Send me</button>
+    </form>
+
+    <hr/>
+    <h2 id="coords">Exercise 4</h2>
+    <div id="coordinates">Move mouse here to see coordinates</div>
+
+<script>
+
+function clickMe() {
+    alert("You clicked me! " + new Date().toLocaleString());
+    
+}
+
+function showTable() {
+    const htmlTable = `
+      <table border="1" cellpadding="5">
+        <tr><th>Name</th><th>Position</th><th>Salary</th></tr>
+        <tr><td>Tiger Nixon</td><td>System Architect</td><td>$320,800</td></tr>
+        <tr><td>Garrett Winters</td><td>Accountant</td><td>$170,750</td></tr>
+        <tr><td>Ashton Cox</td><td>Junior Author</td><td>$86,000</td></tr>
+        <tr><td>Cedric Kelly</td><td>JS Developer</td><td>$433,060</td></tr>
+        <tr><td>Airi Satou</td><td>Accountant</td><td>$162,700</td></tr>
+      </table>`;
+    document.getElementById("tableContainer").innerHTML = htmlTable;
+}
+
+function getLocation() {
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+            (pos) => {
+                const lat = pos.coords.latitude.toFixed(5);
+                const lon = pos.coords.longitude.toFixed(5);
+                console.log(`Latitude: ${lat}, Longitude: ${lon}`);
+                document.getElementById("geoOutput").innerText =
+                    `Latitude: ${lat}, Longitude: ${lon}`;
+            },
+            (err) => {
+                alert("Unable to retrieve location: " + err.message);
+            }
+        );
+    } else {
+        alert("Geolocation is not supported by this browser.");
+    }
+}
+
+
+const ex2 = document.getElementById("ex2Heading");
+ex2.onmouseover = () => console.log("Stepped over by a mouse!");
+ex2.onmouseout = () => alert("Bye bye mouse!");
+
+
+let keyCount = 0;
+function focusText() {
+    alert("Please fill in the form with proper data.");
+    document.getElementById("textdata").style.backgroundColor = "#e7f7ff";
+}
+function countKeys() {
+    keyCount++;
+    document.getElementById("charcount").innerText =
+        "Key presses: " + keyCount;
+}
+function checkForm() {
+    const value = document.getElementById("textdata").value.trim();
+    if (!value) {
+        alert("Textarea is empty! Please enter some text.");
+        return false; // prevent form submission
+    }
+    alert("Form submitted with: " + value);
+    return false; // keep page from reloading for demo
+}
+
+const coordsDiv = document.getElementById("coordinates");
+coordsDiv.onmousemove = function(e) {
+    const x = e.offsetX;
+    const y = e.offsetY;
+    console.log(`X: ${x}, Y: ${y}`);
+    document.getElementById("coords").innerText = `Coordinates → X: ${x}, Y: ${y}`;
+};
+</script>
+</body>
+</html>
