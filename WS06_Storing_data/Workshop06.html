@@ -4,8 +4,44 @@
 		<title>Workshop 6</title>
 		<meta charset="utf-8">
 		<link rel="stylesheet" href="css/styles.css">
+		<script>
+			// Exercise 1: Save data to localStorage
+			function getData() {
+				const destination = document.getElementById("destination").value;
+				const arrival = document.getElementById("arrival").value;
+				const checkboxes = document.querySelectorAll("#services input[type='checkbox']");
+				let services = [];
+				checkboxes.forEach(cb => {
+					if (cb.checked) {
+						services.push(cb.value);
+					}
+				});
+
+				// Save to localStorage
+				localStorage.setItem("destination", destination);
+				localStorage.setItem("arrival", arrival);
+				localStorage.setItem("services", JSON.stringify(services));
+
+				alert("Reservation saved to localStorage!");
+			}
+
+			// Exercise 2: Load saved data when page loads
+			function loadData() {
+				const destination = localStorage.getItem("destination");
+				const arrival = localStorage.getItem("arrival");
+				const services = JSON.parse(localStorage.getItem("services"));
+
+				if (destination || arrival || services) {
+					let output = "<strong>Saved session data:</strong><br>";
+					if (destination) output += "Destination: " + destination + "<br>";
+					if (arrival) output += "Arrival Date: " + arrival + "<br>";
+					if (services && services.length > 0) output += "Services: " + services.join(", ");
+					document.getElementById("sessiondata").innerHTML = output;
+				}
+			}
+		</script>
 	</head>
-	<body class="ws6" onload="">
+	<body class="ws6" onload="loadData()">
 		<h1>Workshop 6: Using Localstorage</h1>
 		<hr />
 		<h2>Exercise 1: Saving the entered data</h2>
