@@ -3,7 +3,7 @@
 	<head>
 		<title>Workshop 7</title>
 		<meta charset="utf-8">
-		<link rel="stylesheet" href="css/styles.css">
+		<link rel="stylesheet" href="styles.css">
 	</head>
 	<body class="ws7">
 		<h1>Workshop 7: Using AJAX and parsing XML</h1>
@@ -48,6 +48,23 @@
 		</quotes>
 		<!-- THIS IS THE END  OF XML DATA -->
 		<hr/>
+			<script>
+	
+	function parseData() {
+    const quotes = document.getElementsByTagName("quote");
+    const authors = document.getElementsByTagName("author");
+
+    let output = "";
+
+    for (let i = 0; i < quotes.length; i++) {
+        let quoteText = quotes[i].textContent;
+        let authorText = authors[i] ? authors[i].textContent : "Unknown";
+        output += `"${quoteText}" — ${authorText}\n\n`;
+    }
+    alert(output);
+}
+</script>
+
 		<h2>Exercise 2: AJAX call to an XML file </h2>
 		<p>Create an AJAX script, which will load the famous-quotes.xml file from the server: <a href="http://iceberg-cycle.codio.io/5: Asynchronous JavaScript (AJAX)/famous-quotes.xml" target="_blank">http://iceberg-cycle.codio.io/5: Asynchronous JavaScript (AJAX)/famous-quotes.xml</a> and inject the raw contents of the file to a div below (id="quotes"). Here's another alternative: <a href="http://quotes.rest/qod.xml" target="_blank">http://quotes.rest/qod.xml</a>. </p>
 		<p>NOTE: The raw XML data looks weird on the browser. You can use developer tools to study the contents by inspecting the DIV.</p>
@@ -79,6 +96,92 @@
 		<div id="quotes"></div>
 		<p>&nbsp;</p>
 		<hr/>
+
+		<script>
+		function loadXMLFile() {
+    var xmlhttp = new XMLHttpRequest();
+    xmlhttp.open("GET", "famous-quotes.xml", true); // same folder
+    xmlhttp.send();
+
+    xmlhttp.onreadystatechange = function() {
+        if (xmlhttp.readyState === 4) {
+            if (xmlhttp.status === 200) {
+                var xmlDoc = xmlhttp.responseXML;
+
+                // Get all <quotes> nodes
+                var quotes = xmlDoc.getElementsByTagName("quotes");
+
+                // Build an HTML table
+                var table = "<table><tr><th>Quote</th><th>Author</th></tr>";
+
+                for (var i = 0; i < quotes.length; i++) {
+                    var quote = quotes[i].getElementsByTagName("quote")[0].textContent;
+                    var author = quotes[i].getElementsByTagName("author")[0].textContent;
+
+                    table += "<tr><td>" + quote + "</td><td>" + author + "</td></tr>";
+                }
+
+                table += "</table>";
+
+                // Display table
+                document.getElementById("quotes").innerHTML = table;
+            } else {
+                document.getElementById("quotes").textContent = 
+                    "Error fetching XML file. Status: " + xmlhttp.status;
+            }
+        }
+    };
+}
+</script>
+<script>
+function loadAndParseXML() {
+    const xmlhttp = new XMLHttpRequest();
+    xmlhttp.open("GET", "famous-quotes.xml", true);
+    xmlhttp.send();
+
+    xmlhttp.onreadystatechange = function () {
+        if (xmlhttp.readyState === 4) {
+            if (xmlhttp.status === 200) {
+                const xmlDoc = xmlhttp.responseXML;
+                const quotes = xmlDoc.getElementsByTagName("quotes");
+
+                // Build table rows dynamically (keeping your existing structure)
+                let rows = "";
+                for (let i = 0; i < quotes.length; i++) {
+                    const quote = quotes[i].getElementsByTagName("quote")[0].textContent;
+                    const author = quotes[i].getElementsByTagName("author")[0].textContent;
+                    rows += `
+                        <tr>
+                            <td>${quote}</td>
+                            <td>${author}</td>
+                        </tr>
+                    `;
+                }
+
+                // Replace only the table inside #tabledata (not the whole div)
+                const table = `
+                    <table>
+                        <tbody>
+                            <tr>
+                                <td><strong>Quote</strong></td>
+                                <td><strong>Author</strong></td>
+                            </tr>
+                            ${rows}
+                        </tbody>
+                    </table>
+                `;
+                document.getElementById("tabledata").innerHTML = table;
+
+            } else {
+                document.getElementById("tabledata").innerHTML =
+                    `<p style="color:red;">Error loading XML (status ${xmlhttp.status})</p>`;
+            }
+        }
+    };
+}
+</script>
+
+
 		<h2>Exercise 3: Parsing the XML</h2>
 		<p>Continue working from exercise 2. Once you have injected the results, use JavaScript to parse the XML/JSON-file and output the file contents in a nice HTML-table below. Add some styles to the table.</p>
 		<p>
@@ -116,6 +219,56 @@
 		<input type="button" name="Fetch3" id="Fetch3b" value="Load YAHOO newsfeed" onclick="loadAndParseNews('https://www.yahoo.com/news/rss/')">
 		<input type="button" name="Fetch3" id="Fetch3c" value="Load Iltalehti Newsfeed" onclick="loadAndParseNews('http://www.iltalehti.fi/rss/uutiset.xml')">
 		<div id="newsfeed">
+			<script>
+function loadAndParseNews(url) {
+    const proxy = "https://api.allorigins.win/raw?url="; // safe public CORS proxy
+    const xmlhttp = new XMLHttpRequest();
+    xmlhttp.open("GET", proxy + encodeURIComponent(url), true);
+    xmlhttp.send();
+
+    document.getElementById("newsfeed").innerHTML = "<p>Loading news...</p>";
+
+    xmlhttp.onreadystatechange = function () {
+        if (xmlhttp.readyState === 4) {
+            if (xmlhttp.status === 200) {
+                const parser = new DOMParser();
+                const xmlDoc = parser.parseFromString(xmlhttp.responseText, "text/xml");
+
+                const items = xmlDoc.getElementsByTagName("item").length > 0
+                    ? xmlDoc.getElementsByTagName("item")
+                    : xmlDoc.getElementsByTagName("entry");
+
+                if (items.length === 0) {
+                    document.getElementById("newsfeed").innerHTML =
+                        "<p>No items found in feed.</p>";
+                    return;
+                }
+
+                let listHTML = "<ul>";
+                for (let i = 0; i < items.length; i++) {
+                    const titleNode = items[i].getElementsByTagName("title")[0];
+                    const linkNode = items[i].getElementsByTagName("link")[0];
+                    const title = titleNode ? titleNode.textContent : "No title";
+                    let link = "#";
+                    if (linkNode) {
+                        link = linkNode.textContent || linkNode.getAttribute("href") || "#";
+                    }
+                    listHTML += `<li><a href="${link}" target="_blank">${title}</a></li>`;
+                }
+                listHTML += "</ul>";
+
+                document.getElementById("newsfeed").innerHTML = listHTML;
+            } else {
+                document.getElementById("newsfeed").innerHTML =
+                    `<p style="color:red;">Error loading feed (status ${xmlhttp.status})</p>`;
+            }
+        }
+    };
+}
+</script>
+
+
 		</div>
+
 	</body>
 </html>
